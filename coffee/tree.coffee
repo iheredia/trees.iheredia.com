@@ -5,22 +5,17 @@ class Tree
     @reGenerate()
 
   reGenerate: ->
-    rectPosition = {
-      x: @canvas.el.width * 0.45
-      y: @canvas.el.height * 0.95
-      angle: 0
-    }
     size = {
       width: @canvas.el.width * 0.1
-      height: @canvas.el.height * 0.2
+      height: @canvas.el.width * 0.1 * 16 / 9
     }
-    rect = new Rectangle(rectPosition, size)
-
-    @currentLayer = []
-    @currentLayer.push(rect)
+    rectPosition = {
+      x: @canvas.el.width/2 - size.width/2
+      y: @canvas.el.height
+      angle: 0
+    }
+    @baseRect = new Rectangle(rectPosition, size)
 
   draw: ->
-    for i in [0.. Math.min(500, @currentLayer.length)]
-      n = Math.round(Math.random() * @currentLayer.length/2)
-      rect = @currentLayer[n]
-      rect.draw(@canvas.ctx)
+    @baseRect.draw(@canvas.ctx)
+    @baseRect.divide()
