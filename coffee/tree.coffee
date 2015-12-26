@@ -5,16 +5,20 @@ class Tree
     @reGenerate()
 
   reGenerate: ->
+    min = Math.min(@canvas.el.height, @canvas.el.width)
     size = {
-      width: @canvas.el.width * 0.1
-      height: @canvas.el.width * 0.1 * 16 / 9
+      width: min * 0.1
+      height: min * 0.1 * 16 / 9
     }
     rectPosition = {
       x: @canvas.el.width/2 - size.width/2
-      y: @canvas.el.height
+      y: @canvas.el.height*0.9
       angle: 0
     }
-    @baseRect = new Rectangle(rectPosition, size)
+    style = {
+      layer: 0
+    }
+    @baseRect = new Rectangle(rectPosition, size, style)
 
   draw: ->
     @baseRect.draw(@canvas.ctx)

@@ -37,10 +37,11 @@
   });
 
   Rectangle = (function() {
-    function Rectangle(position, size1) {
+    function Rectangle(position, size1, style1) {
       this.position = position;
       this.size = size1;
-      this.layer = 1;
+      this.style = style1;
+      this.divide = bind(this.divide, this);
     }
 
     Rectangle.prototype.brownHue = 40;
@@ -52,12 +53,7 @@
     Rectangle.prototype.draw = function(ctx) {
       var brightness, hue;
       this.ctx = ctx;
-      if (this.layer < 5) {
-        hue = this.brownHue;
-      } else {
-        hue = this.greenHue;
-      }
-      hue += Math.random() * 20 - 10;
+      hue = (this.style.hue || this.brownHue) + Math.random() * 20 - 10;
       brightness = Math.random() * 20 + 25;
       this.ctx.fillStyle = "hsl(" + hue + ", " + this.saturation + "%, " + brightness + "%)";
       this.ctx.translate(this.position.x, this.position.y);
@@ -69,30 +65,38 @@
 
     Rectangle.prototype.addAngle = Math.PI / 4;
 
-    Rectangle.prototype.isGoingDown = function() {
-      return Math.cos(this.position.angle) < 0;
-    };
-
     Rectangle.prototype.divide = function() {
-      var leftRect, rightRect;
-      leftRect = new Rectangle({
+      var leftRect, leftRectPosition, leftRectSize, rightRect, rightRectPosition, rightRectSize, style;
+      style = {
+        layer: this.style.layer + 1,
+        hue: this.style.layer < 5 ? this.brownHue : this.greenHue
+      };
+      leftRectPosition = {
         x: this.position.x + Math.cos(Math.PI / 2 + this.position.angle) * this.size.height,
         y: this.position.y - Math.sin(Math.PI / 2 + this.position.angle) * this.size.height,
         angle: this.position.angle + this.addAngle
-      }, {
+      };
+      leftRectSize = {
         width: this.size.width * Math.cos(this.addAngle),
-        height: Math.cos(this.position.angle + this.addAngle) < 0 ? this.size.height * 0.6 : this.size.height * 0.75
-      });
+        height: this.size.height * 0.75
+      };
+      leftRect = new Rectangle(leftRectPosition, leftRectSize, style);
       leftRect.draw(this.ctx);
-      rightRect = new Rectangle({
+      rightRectPosition = {
         x: leftRect.position.x + Math.cos(leftRect.position.angle) * leftRect.size.width,
         y: leftRect.position.y - Math.sin(leftRect.position.angle) * leftRect.size.width,
         angle: this.position.angle + this.addAngle - Math.PI / 2
-      }, {
+      };
+      rightRectSize = {
         width: this.size.width * Math.sin(this.addAngle),
-        height: Math.cos(this.position.angle + this.addAngle) < 0 ? this.size.height * 0.6 : this.size.height * 0.75
-      });
-      return rightRect.draw(this.ctx);
+        height: this.size.height * 0.75
+      };
+      rightRect = new Rectangle(rightRectPosition, rightRectSize, style);
+      rightRect.draw(this.ctx);
+      if (this.style.layer < 6) {
+        setTimeout(leftRect.divide, 200);
+        return setTimeout(rightRect.divide, 200);
+      }
     };
 
     return Rectangle;
@@ -106,17 +110,21 @@
     }
 
     Tree.prototype.reGenerate = function() {
-      var rectPosition, size;
+      var min, rectPosition, size, style;
+      min = Math.min(this.canvas.el.height, this.canvas.el.width);
       size = {
-        width: this.canvas.el.width * 0.1,
-        height: this.canvas.el.width * 0.1 * 16 / 9
+        width: min * 0.1,
+        height: min * 0.1 * 16 / 9
       };
       rectPosition = {
         x: this.canvas.el.width / 2 - size.width / 2,
-        y: this.canvas.el.height,
+        y: this.canvas.el.height * 0.9,
         angle: 0
       };
-      return this.baseRect = new Rectangle(rectPosition, size);
+      style = {
+        layer: 0
+      };
+      return this.baseRect = new Rectangle(rectPosition, size, style);
     };
 
     Tree.prototype.draw = function() {
