@@ -35,7 +35,7 @@ class Rectangle
     }
     leftRectSize = {
       width: @size.width * Math.cos(@addAngle)
-      height: @size.height * 0.75
+      height: @size.height * jStat.beta.sample(12, 4)
     }
 
     leftRect = new Rectangle(leftRectPosition, leftRectSize, style)
@@ -48,11 +48,12 @@ class Rectangle
     }
     rightRectSize = {
       width: @size.width * Math.sin(@addAngle)
-      height: @size.height * 0.75
+      height: @size.height * jStat.beta.sample(12, 4)
     }
     rightRect = new Rectangle(rightRectPosition, rightRectSize, style)
     rightRect.draw(@ctx)
 
-    if @style.layer < 6
-      setTimeout(leftRect.divide, 200)
-      setTimeout(rightRect.divide, 200)
+    if @style.layer < 10
+      mean = 200
+      setTimeout(leftRect.divide, jStat.exponential.sample(1/mean))
+      setTimeout(rightRect.divide, jStat.exponential.sample(1/mean))

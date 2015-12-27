@@ -7,8 +7,8 @@ class Tree
   reGenerate: ->
     min = Math.min(@canvas.el.height, @canvas.el.width)
     size = {
-      width: min * 0.1
-      height: min * 0.1 * 16 / 9
+      width: min * 0.08
+      height: min * 0.08 * 16 / 9
     }
     rectPosition = {
       x: @canvas.el.width/2 - size.width/2

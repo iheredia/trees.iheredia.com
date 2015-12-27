@@ -66,7 +66,7 @@
     Rectangle.prototype.addAngle = Math.PI / 4;
 
     Rectangle.prototype.divide = function() {
-      var leftRect, leftRectPosition, leftRectSize, rightRect, rightRectPosition, rightRectSize, style;
+      var leftRect, leftRectPosition, leftRectSize, mean, rightRect, rightRectPosition, rightRectSize, style;
       style = {
         layer: this.style.layer + 1,
         hue: this.style.layer < 5 ? this.brownHue : this.greenHue
@@ -78,7 +78,7 @@
       };
       leftRectSize = {
         width: this.size.width * Math.cos(this.addAngle),
-        height: this.size.height * 0.75
+        height: this.size.height * jStat.beta.sample(12, 4)
       };
       leftRect = new Rectangle(leftRectPosition, leftRectSize, style);
       leftRect.draw(this.ctx);
@@ -89,13 +89,14 @@
       };
       rightRectSize = {
         width: this.size.width * Math.sin(this.addAngle),
-        height: this.size.height * 0.75
+        height: this.size.height * jStat.beta.sample(12, 4)
       };
       rightRect = new Rectangle(rightRectPosition, rightRectSize, style);
       rightRect.draw(this.ctx);
-      if (this.style.layer < 6) {
-        setTimeout(leftRect.divide, 200);
-        return setTimeout(rightRect.divide, 200);
+      if (this.style.layer < 10) {
+        mean = 200;
+        setTimeout(leftRect.divide, jStat.exponential.sample(1 / mean));
+        return setTimeout(rightRect.divide, jStat.exponential.sample(1 / mean));
       }
     };
 
@@ -113,8 +114,8 @@
       var min, rectPosition, size, style;
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
       size = {
-        width: min * 0.1,
-        height: min * 0.1 * 16 / 9
+        width: min * 0.08,
+        height: min * 0.08 * 16 / 9
       };
       rectPosition = {
         x: this.canvas.el.width / 2 - size.width / 2,
