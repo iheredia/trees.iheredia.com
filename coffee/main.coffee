@@ -1,3 +1,6 @@
 $ ->
   tree = new Tree
-  tree.draw()
+  tree.generate()
+
+  gui = new dat.GUI
+  gui.add(tree, 'generate')

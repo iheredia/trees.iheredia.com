@@ -2,9 +2,9 @@ class Tree
 
   constructor: ->
     @canvas = new DrawingCanvas($('canvas'))
-    @reGenerate()
 
-  reGenerate: ->
+  generate: =>
+    @canvas.clear()
     min = Math.min(@canvas.el.height, @canvas.el.width)
     size = {
       width: min * 0.08
@@ -19,6 +19,7 @@ class Tree
       layer: 0
     }
     @baseRect = new Rectangle(rectPosition, size, style)
+    @draw()
 
   draw: ->
     @baseRect.draw(@canvas.ctx)

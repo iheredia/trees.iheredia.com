@@ -31,9 +31,11 @@
   })();
 
   $(function() {
-    var tree;
+    var gui, tree;
     tree = new Tree;
-    return tree.draw();
+    tree.generate();
+    gui = new dat.GUI;
+    return gui.add(tree, 'generate');
   });
 
   Rectangle = (function() {
@@ -106,12 +108,13 @@
 
   Tree = (function() {
     function Tree() {
+      this.generate = bind(this.generate, this);
       this.canvas = new DrawingCanvas($('canvas'));
-      this.reGenerate();
     }
 
-    Tree.prototype.reGenerate = function() {
+    Tree.prototype.generate = function() {
       var min, rectPosition, size, style;
+      this.canvas.clear();
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
       size = {
         width: min * 0.08,
@@ -125,7 +128,8 @@
       style = {
         layer: 0
       };
-      return this.baseRect = new Rectangle(rectPosition, size, style);
+      this.baseRect = new Rectangle(rectPosition, size, style);
+      return this.draw();
     };
 
     Tree.prototype.draw = function() {
