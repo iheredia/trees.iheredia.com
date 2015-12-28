@@ -35,6 +35,8 @@
     tree = new Tree;
     tree.generate();
     gui = new dat.GUI;
+    gui.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
+    gui.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
     return gui.add(tree, 'generate');
   });
 
@@ -68,7 +70,31 @@
     Rectangle.prototype.addAngle = Math.PI / 4;
 
     Rectangle.prototype.divide = function() {
-      var leftRect, leftRectPosition, leftRectSize, mean, rightRect, rightRectPosition, rightRectSize, style;
+      var i, len, mean, rect, ref, results;
+      ref = this.childrenRect();
+      results = [];
+      for (i = 0, len = ref.length; i < len; i++) {
+        rect = ref[i];
+        rect.draw(this.ctx);
+        if (this.style.layer < 10) {
+          mean = 200;
+          results.push(setTimeout(rect.divide, jStat.exponential.sample(1 / mean)));
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    };
+
+    Rectangle.prototype.childrenRect = function() {
+      var leftRect, rightRect;
+      leftRect = this.leftRect();
+      rightRect = this.rightRect(leftRect);
+      return [leftRect, rightRect];
+    };
+
+    Rectangle.prototype.leftRect = function() {
+      var leftRectPosition, leftRectSize, style;
       style = {
         layer: this.style.layer + 1,
         hue: this.style.layer < 5 ? this.brownHue : this.greenHue
@@ -82,8 +108,15 @@
         width: this.size.width * Math.cos(this.addAngle),
         height: this.size.height * jStat.beta.sample(12, 4)
       };
-      leftRect = new Rectangle(leftRectPosition, leftRectSize, style);
-      leftRect.draw(this.ctx);
+      return new Rectangle(leftRectPosition, leftRectSize, style);
+    };
+
+    Rectangle.prototype.rightRect = function(leftRect) {
+      var rightRectPosition, rightRectSize, style;
+      style = {
+        layer: this.style.layer + 1,
+        hue: this.style.layer < 5 ? this.brownHue : this.greenHue
+      };
       rightRectPosition = {
         x: leftRect.position.x + Math.cos(leftRect.position.angle) * leftRect.size.width,
         y: leftRect.position.y - Math.sin(leftRect.position.angle) * leftRect.size.width,
@@ -93,13 +126,7 @@
         width: this.size.width * Math.sin(this.addAngle),
         height: this.size.height * jStat.beta.sample(12, 4)
       };
-      rightRect = new Rectangle(rightRectPosition, rightRectSize, style);
-      rightRect.draw(this.ctx);
-      if (this.style.layer < 10) {
-        mean = 200;
-        setTimeout(leftRect.divide, jStat.exponential.sample(1 / mean));
-        return setTimeout(rightRect.divide, jStat.exponential.sample(1 / mean));
-      }
+      return new Rectangle(rightRectPosition, rightRectSize, style);
     };
 
     return Rectangle;
@@ -109,16 +136,19 @@
   Tree = (function() {
     function Tree() {
       this.generate = bind(this.generate, this);
+      var min;
       this.canvas = new DrawingCanvas($('canvas'));
+      min = Math.min(this.canvas.el.height, this.canvas.el.width);
+      this.baseWidth = min * 0.08;
+      this.baseHeight = min * 0.08 * 16 / 9;
     }
 
     Tree.prototype.generate = function() {
-      var min, rectPosition, size, style;
+      var rectPosition, size, style;
       this.canvas.clear();
-      min = Math.min(this.canvas.el.height, this.canvas.el.width);
       size = {
-        width: min * 0.08,
-        height: min * 0.08 * 16 / 9
+        width: this.baseWidth,
+        height: this.baseHeight
       };
       rectPosition = {
         x: this.canvas.el.width / 2 - size.width / 2,

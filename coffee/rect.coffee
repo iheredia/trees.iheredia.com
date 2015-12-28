@@ -23,11 +23,22 @@ class Rectangle
   addAngle: Math.PI/4
 
   divide: =>
+    for rect in @childrenRect()
+      rect.draw(@ctx)
+      if @style.layer < 10
+        mean = 200
+        setTimeout(rect.divide, jStat.exponential.sample(1/mean))
+
+  childrenRect: ->
+    leftRect = @leftRect()
+    rightRect = @rightRect(leftRect)
+    [leftRect, rightRect]
+
+  leftRect: ->
     style = {
       layer: @style.layer + 1
       hue: if @style.layer < 5 then @brownHue else @greenHue
     }
-
     leftRectPosition = {
       x: @position.x + Math.cos(Math.PI/2 + @position.angle) * @size.height
       y: @position.y - Math.sin(Math.PI/2 + @position.angle) * @size.height
@@ -38,9 +49,13 @@ class Rectangle
       height: @size.height * jStat.beta.sample(12, 4)
     }
 
-    leftRect = new Rectangle(leftRectPosition, leftRectSize, style)
-    leftRect.draw(@ctx)
+    new Rectangle(leftRectPosition, leftRectSize, style)
 
+  rightRect: (leftRect)->
+    style = {
+      layer: @style.layer + 1
+      hue: if @style.layer < 5 then @brownHue else @greenHue
+    }
     rightRectPosition = {
       x: leftRect.position.x + Math.cos(leftRect.position.angle) * leftRect.size.width
       y: leftRect.position.y - Math.sin(leftRect.position.angle) * leftRect.size.width
@@ -50,10 +65,4 @@ class Rectangle
       width: @size.width * Math.sin(@addAngle)
       height: @size.height * jStat.beta.sample(12, 4)
     }
-    rightRect = new Rectangle(rightRectPosition, rightRectSize, style)
-    rightRect.draw(@ctx)
-
-    if @style.layer < 10
-      mean = 200
-      setTimeout(leftRect.divide, jStat.exponential.sample(1/mean))
-      setTimeout(rightRect.divide, jStat.exponential.sample(1/mean))
+    new Rectangle(rightRectPosition, rightRectSize, style)
