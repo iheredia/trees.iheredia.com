@@ -10,6 +10,8 @@ class Tree
     @up_growing = 50
     @down_growing = 50
     @branch_depth = 7
+    @leaves_depth = 4
+    @squareness = 4
 
   generate: =>
     @_calculateGrowing()

@@ -33,14 +33,17 @@
   })();
 
   $(function() {
-    var general, gui, height, tree;
+    var branches, general, gui, leaves, tree;
     tree = new Tree;
     tree.generate();
     gui = new dat.GUI;
-    height = gui.addFolder('branches');
-    height.add(tree, 'up_growing', 0, 100);
-    height.add(tree, 'down_growing', 0, 100);
-    height.add(tree, 'branch_depth', 1, 10).step(1);
+    branches = gui.addFolder('branches');
+    branches.add(tree, 'up_growing', 0, 100);
+    branches.add(tree, 'down_growing', 0, 100);
+    branches.add(tree, 'branch_depth', 1, 10).step(1);
+    leaves = gui.addFolder('leaves');
+    leaves.add(tree, 'squareness', 1, 10).step(1);
+    leaves.add(tree, 'leaves_depth', 0, 10).step(1);
     general = gui.addFolder('general');
     general.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
     general.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
@@ -76,7 +79,7 @@
 
     Rectangle.prototype.divide = function() {
       var i, len, rect, ref, results;
-      if (this.currentTree !== this.tree._currentTree || this.depth >= this.tree.branch_depth) {
+      if (this.currentTree !== this.tree._currentTree || this.depth >= this.tree.branch_depth + this.tree.leaves_depth) {
         return;
       }
       ref = this.childrenRect();
@@ -100,14 +103,6 @@
       return Math.cos(angle) < 0;
     };
 
-    Rectangle.prototype.heightMultiplier = function(position) {
-      if (this.isGoingDown(position.angle)) {
-        return jStat.beta.sample(this.tree.down_alpha, this.tree.down_beta);
-      } else {
-        return jStat.beta.sample(this.tree.up_alpha, this.tree.up_beta);
-      }
-    };
-
     Rectangle.prototype.leftRect = function() {
       var leftRectPosition, leftRectSize;
       leftRectPosition = {
@@ -117,9 +112,13 @@
       };
       leftRectSize = {
         width: this.size.width * Math.cos(this.addAngle),
-        height: this.size.height * this.heightMultiplier(leftRectPosition)
+        height: this.childHeight() * this.heightMultiplier(leftRectPosition)
       };
-      return new BranchRect(this.tree, leftRectPosition, leftRectSize, this.depth + 1);
+      if (this.depth >= this.tree.branch_depth) {
+        return new LeaveRect(this.tree, leftRectPosition, leftRectSize, this.depth + 1);
+      } else {
+        return new BranchRect(this.tree, leftRectPosition, leftRectSize, this.depth + 1);
+      }
     };
 
     Rectangle.prototype.rightRect = function(leftRect) {
@@ -131,9 +130,13 @@
       };
       rightRectSize = {
         width: this.size.width * Math.sin(this.addAngle),
-        height: this.size.height * this.heightMultiplier(rightRectPosition)
+        height: this.childHeight() * this.heightMultiplier(rightRectPosition)
       };
-      return new BranchRect(this.tree, rightRectPosition, rightRectSize, this.depth + 1);
+      if (this.depth >= this.tree.branch_depth) {
+        return new LeaveRect(this.tree, rightRectPosition, rightRectSize, this.depth + 1);
+      } else {
+        return new BranchRect(this.tree, rightRectPosition, rightRectSize, this.depth + 1);
+      }
     };
 
     return Rectangle;
@@ -149,6 +152,22 @@
 
     BranchRect.prototype.hue = 40;
 
+    BranchRect.prototype.heightMultiplier = function(position) {
+      if (this.isGoingDown(position.angle)) {
+        return jStat.beta.sample(this.tree.down_alpha, this.tree.down_beta);
+      } else {
+        return jStat.beta.sample(this.tree.up_alpha, this.tree.up_beta);
+      }
+    };
+
+    BranchRect.prototype.childHeight = function() {
+      if (this.depth < this.tree.branch_depth) {
+        return this.size.height;
+      } else {
+        return this.size.width;
+      }
+    };
+
     return BranchRect;
 
   })(Rectangle);
@@ -161,6 +180,14 @@
     }
 
     LeaveRect.prototype.hue = 115;
+
+    LeaveRect.prototype.heightMultiplier = function(position) {
+      return jStat.beta.sample(this.tree.squareness * 2, this.tree.squareness * 2);
+    };
+
+    LeaveRect.prototype.childHeight = function() {
+      return this.size.width;
+    };
 
     return LeaveRect;
 
@@ -178,6 +205,8 @@
       this.up_growing = 50;
       this.down_growing = 50;
       this.branch_depth = 7;
+      this.leaves_depth = 4;
+      this.squareness = 4;
     }
 
     Tree.prototype.generate = function() {

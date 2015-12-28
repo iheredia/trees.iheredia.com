@@ -20,7 +20,7 @@ class Rectangle
   addAngle: Math.PI/4
 
   divide: =>
-    return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_depth)
+    return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_depth + @tree.leaves_depth)
     for rect in @childrenRect()
       rect.draw(@ctx)
       setTimeout(rect.divide, jStat.exponential.sample(1/@tree.growingTime))
@@ -33,12 +33,6 @@ class Rectangle
   isGoingDown: (angle) ->
     Math.cos(angle) < 0
 
-  heightMultiplier: (position) ->
-    if @isGoingDown(position.angle)
-      jStat.beta.sample(@tree.down_alpha, @tree.down_beta)
-    else
-      jStat.beta.sample(@tree.up_alpha, @tree.up_beta)
-
   leftRect: ->
     leftRectPosition = {
       x: @position.x + Math.cos(Math.PI/2 + @position.angle) * @size.height
@@ -47,10 +41,12 @@ class Rectangle
     }
     leftRectSize = {
       width: @size.width * Math.cos(@addAngle)
-      height: @size.height * @heightMultiplier(leftRectPosition)
+      height: @childHeight() * @heightMultiplier(leftRectPosition)
     }
-
-    new BranchRect(@tree, leftRectPosition, leftRectSize, @depth+1)
+    if @depth >= @tree.branch_depth
+      new LeaveRect(@tree, leftRectPosition, leftRectSize, @depth+1)
+    else
+      new BranchRect(@tree, leftRectPosition, leftRectSize, @depth+1)
 
   rightRect: (leftRect)->
     rightRectPosition = {
@@ -60,12 +56,33 @@ class Rectangle
     }
     rightRectSize = {
       width: @size.width * Math.sin(@addAngle)
-      height: @size.height * @heightMultiplier(rightRectPosition)
+      height: @childHeight() * @heightMultiplier(rightRectPosition)
     }
-    new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
+    if @depth >= @tree.branch_depth
+      new LeaveRect(@tree, rightRectPosition, rightRectSize, @depth+1)
+    else
+      new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
 
 class BranchRect extends Rectangle
   hue: 40
 
+  heightMultiplier: (position) ->
+    if @isGoingDown(position.angle)
+      jStat.beta.sample(@tree.down_alpha, @tree.down_beta)
+    else
+      jStat.beta.sample(@tree.up_alpha, @tree.up_beta)
+
+  childHeight: ->
+    if @depth < @tree.branch_depth
+      @size.height
+    else
+      @size.width
+
 class LeaveRect extends Rectangle
   hue: 115
+
+  heightMultiplier: (position) ->
+    jStat.beta.sample(@tree.squareness*2, @tree.squareness*2)
+
+  childHeight: ->
+    @size.width
