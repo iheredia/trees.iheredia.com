@@ -5,6 +5,7 @@ class Tree
 
     @general_parameters = {
       growing_time: 200
+      background: "#ffffff"
     }
 
     min = Math.min(@canvas.el.height, @canvas.el.width)
@@ -34,7 +35,7 @@ class Tree
 
   generate: =>
     @_currentTree = Math.random()
-    @canvas.clear()
+    @canvas.clear(@general_parameters.background)
     size = {
       width: @trunk_parameters.width
       height: @trunk_parameters.height

@@ -26,4 +26,5 @@ $ ->
   general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width*2)
 
   gui.add(tree.general_parameters, 'growing_time', 0, 1000)
+  gui.addColor(tree.general_parameters, 'background')
   gui.add(tree, 'generate')

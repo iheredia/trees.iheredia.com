@@ -24,8 +24,9 @@
       }
     };
 
-    DrawingCanvas.prototype.clear = function() {
-      return this.ctx.clearRect(0, 0, this.el.width, this.el.height);
+    DrawingCanvas.prototype.clear = function(color) {
+      this.ctx.fillStyle = color;
+      return this.ctx.fillRect(0, 0, this.el.width, this.el.height);
     };
 
     return DrawingCanvas;
@@ -56,6 +57,7 @@
     general.add(tree.trunk_parameters, 'width', 0, tree.trunk_parameters.width * 2);
     general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width * 2);
     gui.add(tree.general_parameters, 'growing_time', 0, 1000);
+    gui.addColor(tree.general_parameters, 'background');
     return gui.add(tree, 'generate');
   });
 
@@ -221,7 +223,8 @@
       var min;
       this.canvas = new DrawingCanvas($('canvas'));
       this.general_parameters = {
-        growing_time: 200
+        growing_time: 200,
+        background: "#ffffff"
       };
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
       this.trunk_parameters = {
@@ -258,7 +261,7 @@
     Tree.prototype.generate = function() {
       var rectPosition, size;
       this._currentTree = Math.random();
-      this.canvas.clear();
+      this.canvas.clear(this.general_parameters.background);
       size = {
         width: this.trunk_parameters.width,
         height: this.trunk_parameters.height
