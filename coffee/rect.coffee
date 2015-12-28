@@ -65,12 +65,12 @@ class Rectangle
 
 class BranchRect extends Rectangle
   hue: 40
-
+  beta: 25
   heightMultiplier: (position) ->
     if @isGoingDown(position.angle)
-      jStat.beta.sample(@tree.down_alpha, @tree.down_beta)
+      jStat.beta.sample(@tree.down_growing, @beta)
     else
-      jStat.beta.sample(@tree.up_alpha, @tree.up_beta)
+      jStat.beta.sample(@tree.up_growing, @beta)
 
   childHeight: ->
     if @depth < @tree.branch_depth
@@ -82,7 +82,7 @@ class LeaveRect extends Rectangle
   hue: 115
 
   heightMultiplier: (position) ->
-    jStat.beta.sample(@tree.squareness*2, @tree.squareness*2)
+    1 + jStat.beta.sample(10.1 - @tree.squareness, 10)
 
   childHeight: ->
     @size.width

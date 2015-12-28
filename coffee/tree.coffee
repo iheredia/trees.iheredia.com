@@ -14,7 +14,6 @@ class Tree
     @squareness = 4
 
   generate: =>
-    @_calculateGrowing()
     @_currentTree = Math.random()
     @canvas.clear()
     size = {
@@ -34,9 +33,3 @@ class Tree
   draw: ->
     @baseRect.draw(@canvas.ctx)
     @baseRect.divide()
-
-  _calculateGrowing: ->
-    @up_alpha = @up_growing
-    @up_beta = 25
-    @down_alpha = @down_growing
-    @down_beta = 25

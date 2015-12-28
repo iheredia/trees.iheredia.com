@@ -10,7 +10,7 @@ $ ->
   branches.add(tree, 'branch_depth', 1, 10).step(1)
 
   leaves = gui.addFolder('leaves')
-  leaves.add(tree, 'squareness', 1, 10).step(1)
+  leaves.add(tree, 'squareness', 0, 10).step(0.1)
   leaves.add(tree, 'leaves_depth', 0, 10).step(1)
 
   general = gui.addFolder('general')
