@@ -1,16 +1,12 @@
 class Rectangle
 
-  constructor: (@tree, @position, @size, @style) ->
+  constructor: (@tree, @position, @size, @depth=1) ->
     @currentTree = @tree._currentTree
 
-  brownHue: 40
-  greenHue: 115
-  saturation: 90
-
   draw: (@ctx) ->
-    hue = (@style.hue || @brownHue) + Math.random() *20 - 10
+    hue = @hue + Math.random() *20 - 10
     brightness = Math.random() * 20 + 25
-    @ctx.fillStyle = "hsl(#{hue}, #{@saturation}%, #{brightness}%)"
+    @ctx.fillStyle = "hsl(#{hue}, #{90}%, #{brightness}%)"
 
     @ctx.translate(@position.x, @position.y)
     @ctx.rotate(-@position.angle)
@@ -24,11 +20,10 @@ class Rectangle
   addAngle: Math.PI/4
 
   divide: =>
-    return unless @currentTree == @tree._currentTree
+    return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_depth)
     for rect in @childrenRect()
       rect.draw(@ctx)
-      if @style.layer < 10
-        setTimeout(rect.divide, jStat.exponential.sample(1/@tree.divideMeanTime))
+      setTimeout(rect.divide, jStat.exponential.sample(1/@tree.growingTime))
 
   childrenRect: ->
     leftRect = @leftRect()
@@ -45,10 +40,6 @@ class Rectangle
       jStat.beta.sample(@tree.up_alpha, @tree.up_beta)
 
   leftRect: ->
-    style = {
-      layer: @style.layer + 1
-      hue: if @style.layer < 5 then @brownHue else @greenHue
-    }
     leftRectPosition = {
       x: @position.x + Math.cos(Math.PI/2 + @position.angle) * @size.height
       y: @position.y - Math.sin(Math.PI/2 + @position.angle) * @size.height
@@ -59,13 +50,9 @@ class Rectangle
       height: @size.height * @heightMultiplier(leftRectPosition)
     }
 
-    new Rectangle(@tree, leftRectPosition, leftRectSize, style)
+    new BranchRect(@tree, leftRectPosition, leftRectSize, @depth+1)
 
   rightRect: (leftRect)->
-    style = {
-      layer: @style.layer + 1
-      hue: if @style.layer < 5 then @brownHue else @greenHue
-    }
     rightRectPosition = {
       x: leftRect.position.x + Math.cos(leftRect.position.angle) * leftRect.size.width
       y: leftRect.position.y - Math.sin(leftRect.position.angle) * leftRect.size.width
@@ -75,4 +62,10 @@ class Rectangle
       width: @size.width * Math.sin(@addAngle)
       height: @size.height * @heightMultiplier(rightRectPosition)
     }
-    new Rectangle(@tree, rightRectPosition, rightRectSize, style)
+    new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
+
+class BranchRect extends Rectangle
+  hue: 40
+
+class LeaveRect extends Rectangle
+  hue: 115

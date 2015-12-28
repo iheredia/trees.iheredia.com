@@ -5,10 +5,11 @@ class Tree
     min = Math.min(@canvas.el.height, @canvas.el.width)
     @baseWidth = min * 0.08
     @baseHeight = min * 0.08 * 16 / 9
-    @divideMeanTime = 200
+    @growingTime = 200
 
     @up_growing = 50
     @down_growing = 50
+    @branch_depth = 7
 
   generate: =>
     @_calculateGrowing()
@@ -25,11 +26,7 @@ class Tree
       angle: 0
     }
 
-    style = {
-      layer: 0
-    }
-
-    @baseRect = new Rectangle(@, rectPosition, size, style)
+    @baseRect = new BranchRect(@, rectPosition, size)
     @draw()
 
   draw: ->
