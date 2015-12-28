@@ -28,13 +28,21 @@ class Rectangle
     for rect in @childrenRect()
       rect.draw(@ctx)
       if @style.layer < 10
-        mean = 200
-        setTimeout(rect.divide, jStat.exponential.sample(1/mean))
+        setTimeout(rect.divide, jStat.exponential.sample(1/@tree.divideMeanTime))
 
   childrenRect: ->
     leftRect = @leftRect()
     rightRect = @rightRect(leftRect)
     [leftRect, rightRect]
+
+  isGoingDown: (angle) ->
+    Math.cos(angle) < 0
+
+  heightMultiplier: (position) ->
+    if @isGoingDown(position.angle)
+      jStat.beta.sample(@tree.down_alpha, @tree.down_beta)
+    else
+      jStat.beta.sample(@tree.up_alpha, @tree.up_beta)
 
   leftRect: ->
     style = {
@@ -48,7 +56,7 @@ class Rectangle
     }
     leftRectSize = {
       width: @size.width * Math.cos(@addAngle)
-      height: @size.height * jStat.beta.sample(12, 4)
+      height: @size.height * @heightMultiplier(leftRectPosition)
     }
 
     new Rectangle(@tree, leftRectPosition, leftRectSize, style)
@@ -65,6 +73,6 @@ class Rectangle
     }
     rightRectSize = {
       width: @size.width * Math.sin(@addAngle)
-      height: @size.height * jStat.beta.sample(12, 4)
+      height: @size.height * @heightMultiplier(rightRectPosition)
     }
     new Rectangle(@tree, rightRectPosition, rightRectSize, style)

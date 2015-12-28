@@ -31,19 +31,27 @@
   })();
 
   $(function() {
-    var gui, tree;
+    var general, gui, height, tree;
     tree = new Tree;
     tree.generate();
     gui = new dat.GUI;
-    gui.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
-    gui.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
-    return gui.add(tree, 'generate');
+    height = gui.addFolder('height multiplier');
+    height.add(tree, 'up_alpha');
+    height.add(tree, 'up_beta');
+    height.add(tree, 'down_alpha');
+    height.add(tree, 'down_beta');
+    general = gui.addFolder('general');
+    general.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
+    general.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
+    general.add(tree, 'divideMeanTime', 0, 1000);
+    general.add(tree, 'generate');
+    return general.open();
   });
 
   Rectangle = (function() {
-    function Rectangle(tree1, position, size1, style1) {
+    function Rectangle(tree1, position1, size1, style1) {
       this.tree = tree1;
-      this.position = position;
+      this.position = position1;
       this.size = size1;
       this.style = style1;
       this.divide = bind(this.divide, this);
@@ -72,7 +80,7 @@
     Rectangle.prototype.addAngle = Math.PI / 4;
 
     Rectangle.prototype.divide = function() {
-      var i, len, mean, rect, ref, results;
+      var i, len, rect, ref, results;
       if (this.currentTree !== this.tree._currentTree) {
         return;
       }
@@ -82,8 +90,7 @@
         rect = ref[i];
         rect.draw(this.ctx);
         if (this.style.layer < 10) {
-          mean = 200;
-          results.push(setTimeout(rect.divide, jStat.exponential.sample(1 / mean)));
+          results.push(setTimeout(rect.divide, jStat.exponential.sample(1 / this.tree.divideMeanTime)));
         } else {
           results.push(void 0);
         }
@@ -96,6 +103,18 @@
       leftRect = this.leftRect();
       rightRect = this.rightRect(leftRect);
       return [leftRect, rightRect];
+    };
+
+    Rectangle.prototype.isGoingDown = function(angle) {
+      return Math.cos(angle) < 0;
+    };
+
+    Rectangle.prototype.heightMultiplier = function(position) {
+      if (this.isGoingDown(position.angle)) {
+        return jStat.beta.sample(this.tree.down_alpha, this.tree.down_beta);
+      } else {
+        return jStat.beta.sample(this.tree.up_alpha, this.tree.up_beta);
+      }
     };
 
     Rectangle.prototype.leftRect = function() {
@@ -111,7 +130,7 @@
       };
       leftRectSize = {
         width: this.size.width * Math.cos(this.addAngle),
-        height: this.size.height * jStat.beta.sample(12, 4)
+        height: this.size.height * this.heightMultiplier(leftRectPosition)
       };
       return new Rectangle(this.tree, leftRectPosition, leftRectSize, style);
     };
@@ -129,7 +148,7 @@
       };
       rightRectSize = {
         width: this.size.width * Math.sin(this.addAngle),
-        height: this.size.height * jStat.beta.sample(12, 4)
+        height: this.size.height * this.heightMultiplier(rightRectPosition)
       };
       return new Rectangle(this.tree, rightRectPosition, rightRectSize, style);
     };
@@ -146,6 +165,11 @@
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
       this.baseWidth = min * 0.08;
       this.baseHeight = min * 0.08 * 16 / 9;
+      this.divideMeanTime = 200;
+      this.up_alpha = 8;
+      this.up_beta = 4;
+      this.down_alpha = 6;
+      this.down_beta = 4;
     }
 
     Tree.prototype.generate = function() {

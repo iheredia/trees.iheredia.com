@@ -5,6 +5,12 @@ class Tree
     min = Math.min(@canvas.el.height, @canvas.el.width)
     @baseWidth = min * 0.08
     @baseHeight = min * 0.08 * 16 / 9
+    @divideMeanTime = 200
+
+    @up_alpha = 8
+    @up_beta = 4
+    @down_alpha = 6
+    @down_beta = 4
 
   generate: =>
     @_currentTree = Math.random()
