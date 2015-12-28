@@ -19,7 +19,7 @@ class Rectangle
   addAngle: Math.PI/4
 
   divide: =>
-    return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_depth + @tree.leaves_depth)
+    return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_parameters.depth + @tree.leaves_parameters.depth)
     for rect in @childrenRect()
       rect.draw(@ctx)
       setTimeout(rect.divide, jStat.exponential.sample(1/@tree.growingTime))
@@ -42,7 +42,7 @@ class Rectangle
       width: @size.width * Math.cos(@addAngle)
       height: @childHeight() * @heightMultiplier(leftRectPosition)
     }
-    if @depth >= @tree.branch_depth
+    if @depth >= @tree.branch_parameters.depth
       new LeaveRect(@tree, leftRectPosition, leftRectSize, @depth+1)
     else
       new BranchRect(@tree, leftRectPosition, leftRectSize, @depth+1)
@@ -57,7 +57,7 @@ class Rectangle
       width: @size.width * Math.sin(@addAngle)
       height: @childHeight() * @heightMultiplier(rightRectPosition)
     }
-    if @depth >= @tree.branch_depth
+    if @depth >= @tree.branch_parameters.depth
       new LeaveRect(@tree, rightRectPosition, rightRectSize, @depth+1)
     else
       new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
@@ -67,30 +67,30 @@ class BranchRect extends Rectangle
   beta: 25
   heightMultiplier: (position) ->
     if @isGoingDown(position.angle)
-      jStat.beta.sample(@tree.down_growing, @beta)
+      jStat.beta.sample(@tree.branch_parameters.down_growing, @beta)
     else
-      jStat.beta.sample(@tree.up_growing, @beta)
+      jStat.beta.sample(@tree.branch_parameters.up_growing, @beta)
 
   childHeight: ->
-    if @depth < @tree.branch_depth
+    if @depth < @tree.branch_parameters.depth
       @size.height
     else
       @size.width
 
   setColors: ->
-    @hue = @tree.branch_color.h
-    @saturation = @tree.branch_color.s
-    @value = @tree.branch_color.v
+    @hue = @tree.branch_parameters.color.h
+    @saturation = @tree.branch_parameters.color.s
+    @value = @tree.branch_parameters.color.v
 
 class LeaveRect extends Rectangle
 
   heightMultiplier: (position) ->
-    1 + jStat.beta.sample(10.1 - @tree.squareness, 10)
+    1 + jStat.beta.sample(10.1 - @tree.leaves_parameters.squareness, 10)
 
   childHeight: ->
     @size.width
 
   setColors: ->
-    @hue = jStat.normal.sample(@tree.leaves_color.h, @tree.leaves_hue_variance)
-    @saturation = @tree.leaves_color.s
-    @value = @tree.leaves_color.v
+    @hue = jStat.normal.sample(@tree.leaves_parameters.color.h, @tree.leaves_parameters.hue_variance)
+    @saturation = @tree.leaves_parameters.color.s
+    @value = @tree.leaves_parameters.color.v

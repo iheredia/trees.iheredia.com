@@ -38,15 +38,15 @@
     tree.generate();
     gui = new dat.GUI;
     branches = gui.addFolder('branches');
-    branches.add(tree, 'up_growing', 0, 100);
-    branches.add(tree, 'down_growing', 0, 100);
-    branches.add(tree, 'branch_depth', 1, 10).step(1);
-    branches.addColor(tree, 'branch_color');
+    branches.add(tree.branch_parameters, 'up_growing', 0, 100);
+    branches.add(tree.branch_parameters, 'down_growing', 0, 100);
+    branches.add(tree.branch_parameters, 'depth', 1, 10).step(1);
+    branches.addColor(tree.branch_parameters, 'color');
     leaves = gui.addFolder('leaves');
-    leaves.add(tree, 'squareness', 0, 10).step(0.1);
-    leaves.add(tree, 'leaves_depth', 0, 10).step(1);
-    leaves.addColor(tree, 'leaves_color');
-    leaves.add(tree, 'leaves_hue_variance', 0, 50);
+    leaves.add(tree.leaves_parameters, 'squareness', 0, 10).step(0.1);
+    leaves.add(tree.leaves_parameters, 'depth', 0, 10).step(1);
+    leaves.addColor(tree.leaves_parameters, 'color');
+    leaves.add(tree.leaves_parameters, 'hue_variance', 0, 50);
     general = gui.addFolder('general');
     general.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
     general.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
@@ -80,7 +80,7 @@
 
     Rectangle.prototype.divide = function() {
       var i, len, rect, ref, results;
-      if (this.currentTree !== this.tree._currentTree || this.depth >= this.tree.branch_depth + this.tree.leaves_depth) {
+      if (this.currentTree !== this.tree._currentTree || this.depth >= this.tree.branch_parameters.depth + this.tree.leaves_parameters.depth) {
         return;
       }
       ref = this.childrenRect();
@@ -115,7 +115,7 @@
         width: this.size.width * Math.cos(this.addAngle),
         height: this.childHeight() * this.heightMultiplier(leftRectPosition)
       };
-      if (this.depth >= this.tree.branch_depth) {
+      if (this.depth >= this.tree.branch_parameters.depth) {
         return new LeaveRect(this.tree, leftRectPosition, leftRectSize, this.depth + 1);
       } else {
         return new BranchRect(this.tree, leftRectPosition, leftRectSize, this.depth + 1);
@@ -133,7 +133,7 @@
         width: this.size.width * Math.sin(this.addAngle),
         height: this.childHeight() * this.heightMultiplier(rightRectPosition)
       };
-      if (this.depth >= this.tree.branch_depth) {
+      if (this.depth >= this.tree.branch_parameters.depth) {
         return new LeaveRect(this.tree, rightRectPosition, rightRectSize, this.depth + 1);
       } else {
         return new BranchRect(this.tree, rightRectPosition, rightRectSize, this.depth + 1);
@@ -155,14 +155,14 @@
 
     BranchRect.prototype.heightMultiplier = function(position) {
       if (this.isGoingDown(position.angle)) {
-        return jStat.beta.sample(this.tree.down_growing, this.beta);
+        return jStat.beta.sample(this.tree.branch_parameters.down_growing, this.beta);
       } else {
-        return jStat.beta.sample(this.tree.up_growing, this.beta);
+        return jStat.beta.sample(this.tree.branch_parameters.up_growing, this.beta);
       }
     };
 
     BranchRect.prototype.childHeight = function() {
-      if (this.depth < this.tree.branch_depth) {
+      if (this.depth < this.tree.branch_parameters.depth) {
         return this.size.height;
       } else {
         return this.size.width;
@@ -170,9 +170,9 @@
     };
 
     BranchRect.prototype.setColors = function() {
-      this.hue = this.tree.branch_color.h;
-      this.saturation = this.tree.branch_color.s;
-      return this.value = this.tree.branch_color.v;
+      this.hue = this.tree.branch_parameters.color.h;
+      this.saturation = this.tree.branch_parameters.color.s;
+      return this.value = this.tree.branch_parameters.color.v;
     };
 
     return BranchRect;
@@ -187,7 +187,7 @@
     }
 
     LeaveRect.prototype.heightMultiplier = function(position) {
-      return 1 + jStat.beta.sample(10.1 - this.tree.squareness, 10);
+      return 1 + jStat.beta.sample(10.1 - this.tree.leaves_parameters.squareness, 10);
     };
 
     LeaveRect.prototype.childHeight = function() {
@@ -195,9 +195,9 @@
     };
 
     LeaveRect.prototype.setColors = function() {
-      this.hue = jStat.normal.sample(this.tree.leaves_color.h, this.tree.leaves_hue_variance);
-      this.saturation = this.tree.leaves_color.s;
-      return this.value = this.tree.leaves_color.v;
+      this.hue = jStat.normal.sample(this.tree.leaves_parameters.color.h, this.tree.leaves_parameters.hue_variance);
+      this.saturation = this.tree.leaves_parameters.color.s;
+      return this.value = this.tree.leaves_parameters.color.v;
     };
 
     return LeaveRect;
@@ -213,22 +213,26 @@
       this.baseWidth = min * 0.08;
       this.baseHeight = min * 0.08 * 16 / 9;
       this.growingTime = 200;
-      this.up_growing = 50;
-      this.down_growing = 50;
-      this.branch_depth = 7;
-      this.leaves_depth = 4;
-      this.squareness = 4;
-      this.branch_color = {
-        h: 40,
-        s: 0.9,
-        v: 0.3
+      this.branch_parameters = {
+        up_growing: 50,
+        down_growing: 50,
+        depth: 7,
+        color: {
+          h: 40,
+          s: 0.9,
+          v: 0.3
+        }
       };
-      this.leaves_color = {
-        h: 115,
-        s: 0.9,
-        v: 0.3
+      this.leaves_parameters = {
+        depth: 4,
+        squareness: 4,
+        color: {
+          h: 115,
+          s: 0.9,
+          v: 0.3
+        },
+        hue_variance: 10
       };
-      this.leaves_hue_variance = 10;
     }
 
     Tree.prototype.generate = function() {
