@@ -4,9 +4,8 @@ class Rectangle
     @currentTree = @tree._currentTree
 
   draw: (@ctx) ->
-    hue = @hue + Math.random() *20 - 10
-    brightness = Math.random() * 20 + 25
-    @ctx.fillStyle = "hsl(#{hue}, #{90}%, #{brightness}%)"
+    @setColors()
+    @ctx.fillStyle = "hsl(#{@hue}, #{@saturation*100}%, #{@value*100}%)"
 
     @ctx.translate(@position.x, @position.y)
     @ctx.rotate(-@position.angle)
@@ -64,7 +63,7 @@ class Rectangle
       new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
 
 class BranchRect extends Rectangle
-  hue: 40
+
   beta: 25
   heightMultiplier: (position) ->
     if @isGoingDown(position.angle)
@@ -78,11 +77,20 @@ class BranchRect extends Rectangle
     else
       @size.width
 
+  setColors: ->
+    @hue = @tree.branch_color.h
+    @saturation = @tree.branch_color.s
+    @value = @tree.branch_color.v
+
 class LeaveRect extends Rectangle
-  hue: 115
 
   heightMultiplier: (position) ->
     1 + jStat.beta.sample(10.1 - @tree.squareness, 10)
 
   childHeight: ->
     @size.width
+
+  setColors: ->
+    @hue = jStat.normal.sample(@tree.leaves_color.h, @tree.leaves_hue_variance)
+    @saturation = @tree.leaves_color.s
+    @value = @tree.leaves_color.v

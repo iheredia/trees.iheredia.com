@@ -8,10 +8,13 @@ $ ->
   branches.add(tree, 'up_growing', 0, 100)
   branches.add(tree, 'down_growing', 0, 100)
   branches.add(tree, 'branch_depth', 1, 10).step(1)
+  branches.addColor(tree, 'branch_color')
 
   leaves = gui.addFolder('leaves')
   leaves.add(tree, 'squareness', 0, 10).step(0.1)
   leaves.add(tree, 'leaves_depth', 0, 10).step(1)
+  leaves.addColor(tree, 'leaves_color')
+  leaves.add(tree, 'leaves_hue_variance', 0, 50)
 
   general = gui.addFolder('general')
   general.add(tree, 'baseWidth', 0, tree.baseWidth*2)

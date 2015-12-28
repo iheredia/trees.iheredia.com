@@ -12,6 +12,9 @@ class Tree
     @branch_depth = 7
     @leaves_depth = 4
     @squareness = 4
+    @branch_color = { h: 40, s: 0.9, v: 0.3 }
+    @leaves_color = { h: 115, s: 0.9, v: 0.3 }
+    @leaves_hue_variance = 10
 
   generate: =>
     @_currentTree = Math.random()
