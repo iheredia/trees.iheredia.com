@@ -42,17 +42,21 @@
     branches.add(tree.branch_parameters, 'down_growing', 0, 100);
     branches.add(tree.branch_parameters, 'depth', 1, 10).step(1);
     branches.addColor(tree.branch_parameters, 'color');
+    branches.add(tree.branch_parameters, 'hue_variance', 0, 20);
+    branches.add(tree.branch_parameters, 'saturation_variance', 0, 50);
+    branches.add(tree.branch_parameters, 'value_variance', 0, 50);
     leaves = gui.addFolder('leaves');
     leaves.add(tree.leaves_parameters, 'squareness', 0, 10).step(0.1);
     leaves.add(tree.leaves_parameters, 'depth', 0, 10).step(1);
     leaves.addColor(tree.leaves_parameters, 'color');
     leaves.add(tree.leaves_parameters, 'hue_variance', 0, 50);
-    general = gui.addFolder('general');
-    general.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
-    general.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
-    general.add(tree, 'growingTime', 0, 1000);
-    general.add(tree, 'generate');
-    return general.open();
+    leaves.add(tree.leaves_parameters, 'saturation_variance', 0, 50);
+    leaves.add(tree.leaves_parameters, 'value_variance', 0, 50);
+    general = gui.addFolder('trunk');
+    general.add(tree.trunk_parameters, 'width', 0, tree.trunk_parameters.width * 2);
+    general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width * 2);
+    gui.add(tree.general_parameters, 'growing_time', 0, 1000);
+    return gui.add(tree, 'generate');
   });
 
   Rectangle = (function() {
@@ -88,7 +92,7 @@
       for (i = 0, len = ref.length; i < len; i++) {
         rect = ref[i];
         rect.draw(this.ctx);
-        results.push(setTimeout(rect.divide, jStat.exponential.sample(1 / this.tree.growingTime)));
+        results.push(setTimeout(rect.divide, jStat.exponential.sample(1 / this.tree.general_parameters.growing_time)));
       }
       return results;
     };
@@ -140,6 +144,17 @@
       }
     };
 
+    Rectangle.prototype.setColors = function(rect_type) {
+      var saturation_beta_parameter, saturation_inverse_variance, value_beta_parameter, value_inverse_variance;
+      this.hue = jStat.normal.sample(this.tree[rect_type].color.h, this.tree[rect_type].hue_variance);
+      saturation_beta_parameter = (1 - this.tree[rect_type].color.s) / this.tree[rect_type].color.s;
+      saturation_inverse_variance = 51 - this.tree[rect_type].saturation_variance;
+      this.saturation = jStat.beta.sample(saturation_inverse_variance, saturation_inverse_variance * saturation_beta_parameter);
+      value_beta_parameter = (1 - this.tree[rect_type].color.v) / this.tree[rect_type].color.v;
+      value_inverse_variance = 51 - this.tree[rect_type].value_variance;
+      return this.value = jStat.beta.sample(value_inverse_variance, value_inverse_variance * value_beta_parameter);
+    };
+
     return Rectangle;
 
   })();
@@ -170,9 +185,7 @@
     };
 
     BranchRect.prototype.setColors = function() {
-      this.hue = this.tree.branch_parameters.color.h;
-      this.saturation = this.tree.branch_parameters.color.s;
-      return this.value = this.tree.branch_parameters.color.v;
+      return BranchRect.__super__.setColors.call(this, 'branch_parameters');
     };
 
     return BranchRect;
@@ -195,9 +208,7 @@
     };
 
     LeaveRect.prototype.setColors = function() {
-      this.hue = jStat.normal.sample(this.tree.leaves_parameters.color.h, this.tree.leaves_parameters.hue_variance);
-      this.saturation = this.tree.leaves_parameters.color.s;
-      return this.value = this.tree.leaves_parameters.color.v;
+      return LeaveRect.__super__.setColors.call(this, 'leaves_parameters');
     };
 
     return LeaveRect;
@@ -209,10 +220,14 @@
       this.generate = bind(this.generate, this);
       var min;
       this.canvas = new DrawingCanvas($('canvas'));
+      this.general_parameters = {
+        growing_time: 200
+      };
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
-      this.baseWidth = min * 0.08;
-      this.baseHeight = min * 0.08 * 16 / 9;
-      this.growingTime = 200;
+      this.trunk_parameters = {
+        width: min * 0.08,
+        height: min * 0.08 * 16 / 9
+      };
       this.branch_parameters = {
         up_growing: 50,
         down_growing: 50,
@@ -221,7 +236,10 @@
           h: 40,
           s: 0.9,
           v: 0.3
-        }
+        },
+        hue_variance: 5,
+        saturation_variance: 30,
+        value_variance: 10
       };
       this.leaves_parameters = {
         depth: 4,
@@ -231,7 +249,9 @@
           s: 0.9,
           v: 0.3
         },
-        hue_variance: 10
+        hue_variance: 10,
+        saturation_variance: 10,
+        value_variance: 10
       };
     }
 
@@ -240,8 +260,8 @@
       this._currentTree = Math.random();
       this.canvas.clear();
       size = {
-        width: this.baseWidth,
-        height: this.baseHeight
+        width: this.trunk_parameters.width,
+        height: this.trunk_parameters.height
       };
       rectPosition = {
         x: this.canvas.el.width / 2 - size.width / 2,

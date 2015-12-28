@@ -22,7 +22,7 @@ class Rectangle
     return if (@currentTree != @tree._currentTree or @depth >= @tree.branch_parameters.depth + @tree.leaves_parameters.depth)
     for rect in @childrenRect()
       rect.draw(@ctx)
-      setTimeout(rect.divide, jStat.exponential.sample(1/@tree.growingTime))
+      setTimeout(rect.divide, jStat.exponential.sample(1/@tree.general_parameters.growing_time))
 
   childrenRect: ->
     leftRect = @leftRect()
@@ -62,6 +62,17 @@ class Rectangle
     else
       new BranchRect(@tree, rightRectPosition, rightRectSize, @depth+1)
 
+  setColors: (rect_type) ->
+    @hue = jStat.normal.sample(@tree[rect_type].color.h, @tree[rect_type].hue_variance)
+
+    saturation_beta_parameter = (1-@tree[rect_type].color.s)/@tree[rect_type].color.s
+    saturation_inverse_variance = 51 - @tree[rect_type].saturation_variance
+    @saturation = jStat.beta.sample(saturation_inverse_variance, saturation_inverse_variance*saturation_beta_parameter)
+
+    value_beta_parameter = (1-@tree[rect_type].color.v)/@tree[rect_type].color.v
+    value_inverse_variance = 51 - @tree[rect_type].value_variance
+    @value = jStat.beta.sample(value_inverse_variance, value_inverse_variance*value_beta_parameter)
+
 class BranchRect extends Rectangle
 
   beta: 25
@@ -78,9 +89,7 @@ class BranchRect extends Rectangle
       @size.width
 
   setColors: ->
-    @hue = @tree.branch_parameters.color.h
-    @saturation = @tree.branch_parameters.color.s
-    @value = @tree.branch_parameters.color.v
+    super('branch_parameters')
 
 class LeaveRect extends Rectangle
 
@@ -91,6 +100,4 @@ class LeaveRect extends Rectangle
     @size.width
 
   setColors: ->
-    @hue = jStat.normal.sample(@tree.leaves_parameters.color.h, @tree.leaves_parameters.hue_variance)
-    @saturation = @tree.leaves_parameters.color.s
-    @value = @tree.leaves_parameters.color.v
+    super('leaves_parameters')

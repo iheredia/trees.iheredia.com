@@ -2,30 +2,42 @@ class Tree
 
   constructor: ->
     @canvas = new DrawingCanvas($('canvas'))
+
+    @general_parameters = {
+      growing_time: 200
+    }
+
     min = Math.min(@canvas.el.height, @canvas.el.width)
-    @baseWidth = min * 0.08
-    @baseHeight = min * 0.08 * 16 / 9
-    @growingTime = 200
+    @trunk_parameters = {
+      width: min * 0.08
+      height: min * 0.08 * 16 / 9
+    }
 
     @branch_parameters = {
       up_growing: 50
       down_growing: 50
       depth: 7
       color: { h: 40, s: 0.9, v: 0.3 }
+      hue_variance: 5
+      saturation_variance: 30
+      value_variance: 10
     }
+
     @leaves_parameters = {
       depth: 4
       squareness: 4
       color: { h: 115, s: 0.9, v: 0.3 }
       hue_variance: 10
+      saturation_variance: 10
+      value_variance: 10
     }
 
   generate: =>
     @_currentTree = Math.random()
     @canvas.clear()
     size = {
-      width: @baseWidth
-      height: @baseHeight
+      width: @trunk_parameters.width
+      height: @trunk_parameters.height
     }
 
     rectPosition = {
