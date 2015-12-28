@@ -35,11 +35,9 @@
     tree = new Tree;
     tree.generate();
     gui = new dat.GUI;
-    height = gui.addFolder('height multiplier');
-    height.add(tree, 'up_alpha');
-    height.add(tree, 'up_beta');
-    height.add(tree, 'down_alpha');
-    height.add(tree, 'down_beta');
+    height = gui.addFolder('style');
+    height.add(tree, 'up_growing', 0, 100);
+    height.add(tree, 'down_growing', 0, 100);
     general = gui.addFolder('general');
     general.add(tree, 'baseWidth', 0, tree.baseWidth * 2);
     general.add(tree, 'baseHeight', 0, tree.baseWidth * 2);
@@ -166,14 +164,13 @@
       this.baseWidth = min * 0.08;
       this.baseHeight = min * 0.08 * 16 / 9;
       this.divideMeanTime = 200;
-      this.up_alpha = 8;
-      this.up_beta = 4;
-      this.down_alpha = 6;
-      this.down_beta = 4;
+      this.up_growing = 50;
+      this.down_growing = 50;
     }
 
     Tree.prototype.generate = function() {
       var rectPosition, size, style;
+      this._calculateGrowing();
       this._currentTree = Math.random();
       this.canvas.clear();
       size = {
@@ -195,6 +192,13 @@
     Tree.prototype.draw = function() {
       this.baseRect.draw(this.canvas.ctx);
       return this.baseRect.divide();
+    };
+
+    Tree.prototype._calculateGrowing = function() {
+      this.up_alpha = this.up_growing;
+      this.up_beta = 25;
+      this.down_alpha = this.down_growing;
+      return this.down_beta = 25;
     };
 
     return Tree;

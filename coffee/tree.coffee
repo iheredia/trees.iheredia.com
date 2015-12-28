@@ -7,12 +7,11 @@ class Tree
     @baseHeight = min * 0.08 * 16 / 9
     @divideMeanTime = 200
 
-    @up_alpha = 8
-    @up_beta = 4
-    @down_alpha = 6
-    @down_beta = 4
+    @up_growing = 50
+    @down_growing = 50
 
   generate: =>
+    @_calculateGrowing()
     @_currentTree = Math.random()
     @canvas.clear()
     size = {
@@ -36,3 +35,9 @@ class Tree
   draw: ->
     @baseRect.draw(@canvas.ctx)
     @baseRect.divide()
+
+  _calculateGrowing: ->
+    @up_alpha = @up_growing
+    @up_beta = 25
+    @down_alpha = @down_growing
+    @down_beta = 25
