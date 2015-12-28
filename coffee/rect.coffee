@@ -1,6 +1,7 @@
 class Rectangle
 
-  constructor: (@position, @size, @style) ->
+  constructor: (@tree, @position, @size, @style) ->
+    @currentTree = @tree._currentTree
 
   brownHue: 40
   greenHue: 115
@@ -23,6 +24,7 @@ class Rectangle
   addAngle: Math.PI/4
 
   divide: =>
+    return unless @currentTree == @tree._currentTree
     for rect in @childrenRect()
       rect.draw(@ctx)
       if @style.layer < 10
@@ -49,7 +51,7 @@ class Rectangle
       height: @size.height * jStat.beta.sample(12, 4)
     }
 
-    new Rectangle(leftRectPosition, leftRectSize, style)
+    new Rectangle(@tree, leftRectPosition, leftRectSize, style)
 
   rightRect: (leftRect)->
     style = {
@@ -65,4 +67,4 @@ class Rectangle
       width: @size.width * Math.sin(@addAngle)
       height: @size.height * jStat.beta.sample(12, 4)
     }
-    new Rectangle(rightRectPosition, rightRectSize, style)
+    new Rectangle(@tree, rightRectPosition, rightRectSize, style)

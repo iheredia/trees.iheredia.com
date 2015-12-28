@@ -41,11 +41,13 @@
   });
 
   Rectangle = (function() {
-    function Rectangle(position, size1, style1) {
+    function Rectangle(tree1, position, size1, style1) {
+      this.tree = tree1;
       this.position = position;
       this.size = size1;
       this.style = style1;
       this.divide = bind(this.divide, this);
+      this.currentTree = this.tree._currentTree;
     }
 
     Rectangle.prototype.brownHue = 40;
@@ -71,6 +73,9 @@
 
     Rectangle.prototype.divide = function() {
       var i, len, mean, rect, ref, results;
+      if (this.currentTree !== this.tree._currentTree) {
+        return;
+      }
       ref = this.childrenRect();
       results = [];
       for (i = 0, len = ref.length; i < len; i++) {
@@ -108,7 +113,7 @@
         width: this.size.width * Math.cos(this.addAngle),
         height: this.size.height * jStat.beta.sample(12, 4)
       };
-      return new Rectangle(leftRectPosition, leftRectSize, style);
+      return new Rectangle(this.tree, leftRectPosition, leftRectSize, style);
     };
 
     Rectangle.prototype.rightRect = function(leftRect) {
@@ -126,7 +131,7 @@
         width: this.size.width * Math.sin(this.addAngle),
         height: this.size.height * jStat.beta.sample(12, 4)
       };
-      return new Rectangle(rightRectPosition, rightRectSize, style);
+      return new Rectangle(this.tree, rightRectPosition, rightRectSize, style);
     };
 
     return Rectangle;
@@ -145,6 +150,7 @@
 
     Tree.prototype.generate = function() {
       var rectPosition, size, style;
+      this._currentTree = Math.random();
       this.canvas.clear();
       size = {
         width: this.baseWidth,
@@ -158,7 +164,7 @@
       style = {
         layer: 0
       };
-      this.baseRect = new Rectangle(rectPosition, size, style);
+      this.baseRect = new Rectangle(this, rectPosition, size, style);
       return this.draw();
     };
 

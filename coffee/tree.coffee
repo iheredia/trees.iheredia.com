@@ -7,8 +7,8 @@ class Tree
     @baseHeight = min * 0.08 * 16 / 9
 
   generate: =>
+    @_currentTree = Math.random()
     @canvas.clear()
-
     size = {
       width: @baseWidth
       height: @baseHeight
@@ -24,7 +24,7 @@ class Tree
       layer: 0
     }
 
-    @baseRect = new Rectangle(rectPosition, size, style)
+    @baseRect = new Rectangle(@, rectPosition, size, style)
     @draw()
 
   draw: ->
