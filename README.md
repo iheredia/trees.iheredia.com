@@ -1,8 +1,7 @@
 # Trees
-Probabilistic [Pythagoras tree](https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal)) generator.  
 
-coffee -wcj ./js/main.js ./coffee/*
+Probabilistic [Pythagoras tree](https://en.wikipedia.org/wiki/Pythagoras_tree_(fractal)) generator.
 
-http://jstat.github.io/distributions.html
+See it running [here](http://iheredia.github.io/trees/) 
 
-http://workshop.chromeexperiments.com/examples/gui/
+Using [jsStat](http://jstat.github.io/) for random sampling and [dat.gui](http://workshop.chromeexperiments.com/examples/gui/) for parameter manipulation
