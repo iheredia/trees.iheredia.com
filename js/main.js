@@ -82,8 +82,8 @@
               "value_variance": 10
             },
             "3": {
-              "width": 48.32,
-              "height": 62.816
+              "width": 60,
+              "height": 110
             },
             "4": {
               "split_direction": 90,
@@ -366,7 +366,6 @@
   Tree = (function() {
     function Tree() {
       this.generate = bind(this.generate, this);
-      var min;
       this.canvas = new DrawingCanvas($('canvas'));
       this.general_parameters = {
         growing_time: 200,
@@ -374,10 +373,9 @@
         clean_canvas: true,
         shape: 'rects'
       };
-      min = Math.min(this.canvas.el.height, this.canvas.el.width);
       this.trunk_parameters = {
-        width: min * 0.08,
-        height: min * 0.08 * 1.3
+        width: 60,
+        height: 110
       };
       this.branch_parameters = {
         up_growing: 150,

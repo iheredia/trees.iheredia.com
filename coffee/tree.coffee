@@ -10,10 +10,9 @@ class Tree
       shape: 'rects'
     }
 
-    min = Math.min(@canvas.el.height, @canvas.el.width)
     @trunk_parameters = {
-      width: min * 0.08
-      height: min * 0.08 * 1.3
+      width: 60
+      height: 110
     }
 
     @branch_parameters = {
