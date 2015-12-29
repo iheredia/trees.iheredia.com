@@ -26,7 +26,7 @@ class Tree
 
     @leaves_parameters = {
       depth: 4
-      squareness: 4
+      squareness: 50
       color: { h: 115, s: 0.9, v: 0.3 }
       hue_variance: 10
       saturation_variance: 10
@@ -41,15 +41,15 @@ class Tree
       height: @trunk_parameters.height
     }
 
-    rectPosition = {
+    shapePosition = {
       x: @canvas.el.width/2 - size.width/2
       y: @canvas.el.height*0.9
       angle: 0
     }
 
-    @baseRect = new BranchRect(@, rectPosition, size)
+    @baseShape = new BranchShape(@, shapePosition, size)
     @draw()
 
   draw: ->
-    @baseRect.draw(@canvas.ctx)
-    @baseRect.divide()
+    @baseShape.draw(@canvas.ctx)
+    @baseShape.divide()
