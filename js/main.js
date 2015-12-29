@@ -64,9 +64,9 @@
   Shape = (function() {
     Shape.prototype.addAngle = Math.PI / 4;
 
-    function Shape(tree1, position1, size1, depth) {
+    function Shape(tree1, position, size1, depth) {
       this.tree = tree1;
-      this.position = position1;
+      this.position = position;
       this.size = size1;
       this.depth = depth != null ? depth : 1;
       this.divide = bind(this.divide, this);
@@ -114,39 +114,40 @@
       return Math.cos(angle) < 0;
     };
 
+    Shape.prototype.childSize = function(side) {
+      var trig;
+      trig = side === 'left' ? Math.cos : Math.sin;
+      return {
+        width: this.size.width * trig(this.addAngle),
+        height: this.childHeight()
+      };
+    };
+
     Shape.prototype.leftShape = function() {
-      var leftShapePosition, leftShapeSize;
+      var leftShapePosition;
       leftShapePosition = {
         x: this.position.x + Math.cos(Math.PI / 2 + this.position.angle) * this.size.height,
         y: this.position.y - Math.sin(Math.PI / 2 + this.position.angle) * this.size.height,
         angle: this.position.angle + this.addAngle
       };
-      leftShapeSize = {
-        width: this.size.width * Math.cos(this.addAngle),
-        height: this.childHeight() * this.heightMultiplier(leftShapePosition)
-      };
       if (this.depth >= this.tree.branch_parameters.depth) {
-        return new LeaveShape(this.tree, leftShapePosition, leftShapeSize, this.depth + 1);
+        return new LeaveShape(this.tree, leftShapePosition, this.childSize('left'), this.depth + 1);
       } else {
-        return new BranchShape(this.tree, leftShapePosition, leftShapeSize, this.depth + 1);
+        return new BranchShape(this.tree, leftShapePosition, this.childSize('left'), this.depth + 1);
       }
     };
 
     Shape.prototype.rightShape = function(leftShape) {
-      var rightShapePosition, rightShapeSize;
+      var rightShapePosition;
       rightShapePosition = {
         x: leftShape.position.x + Math.cos(leftShape.position.angle) * leftShape.size.width,
         y: leftShape.position.y - Math.sin(leftShape.position.angle) * leftShape.size.width,
         angle: this.position.angle + this.addAngle - Math.PI / 2
       };
-      rightShapeSize = {
-        width: this.size.width * Math.sin(this.addAngle),
-        height: this.childHeight() * this.heightMultiplier(rightShapePosition)
-      };
       if (this.depth >= this.tree.branch_parameters.depth) {
-        return new LeaveShape(this.tree, rightShapePosition, rightShapeSize, this.depth + 1);
+        return new LeaveShape(this.tree, rightShapePosition, this.childSize('right'), this.depth + 1);
       } else {
-        return new BranchShape(this.tree, rightShapePosition, rightShapeSize, this.depth + 1);
+        return new BranchShape(this.tree, rightShapePosition, this.childSize('right'), this.depth + 1);
       }
     };
 
@@ -168,14 +169,21 @@
   BranchShape = (function(superClass) {
     extend(BranchShape, superClass);
 
-    function BranchShape() {
-      return BranchShape.__super__.constructor.apply(this, arguments);
-    }
-
     BranchShape.prototype.beta = 25;
 
-    BranchShape.prototype.heightMultiplier = function(position) {
-      if (this.isGoingDown(position.angle)) {
+    function BranchShape(tree1, position, size1, depth) {
+      this.tree = tree1;
+      this.position = position;
+      this.size = size1;
+      this.depth = depth != null ? depth : 1;
+      BranchShape.__super__.constructor.call(this, this.tree, this.position, this.size, this.depth);
+      if (this.depth !== 0) {
+        this.size.height *= this.heightMultiplier();
+      }
+    }
+
+    BranchShape.prototype.heightMultiplier = function() {
+      if (this.isGoingDown(this.position.angle)) {
         return jStat.beta.sample(this.tree.branch_parameters.down_growing, this.beta);
       } else {
         return jStat.beta.sample(this.tree.branch_parameters.up_growing, this.beta);
@@ -201,11 +209,16 @@
   LeaveShape = (function(superClass) {
     extend(LeaveShape, superClass);
 
-    function LeaveShape() {
-      return LeaveShape.__super__.constructor.apply(this, arguments);
+    function LeaveShape(tree1, position, size1, depth) {
+      this.tree = tree1;
+      this.position = position;
+      this.size = size1;
+      this.depth = depth != null ? depth : 1;
+      LeaveShape.__super__.constructor.call(this, this.tree, this.position, this.size, this.depth);
+      this.size.height *= this.heightMultiplier();
     }
 
-    LeaveShape.prototype.heightMultiplier = function(position) {
+    LeaveShape.prototype.heightMultiplier = function() {
       return 1 + 2 * jStat.beta.sample(100.1 - this.tree.leaves_parameters.squareness, 100);
     };
 
@@ -236,8 +249,8 @@
         height: min * 0.08 * 16 / 9
       };
       this.branch_parameters = {
-        up_growing: 50,
-        down_growing: 50,
+        up_growing: 150,
+        down_growing: 20,
         depth: 7,
         color: {
           h: 40,
@@ -249,7 +262,7 @@
         value_variance: 10
       };
       this.leaves_parameters = {
-        depth: 4,
+        depth: 5,
         squareness: 50,
         color: {
           h: 115,

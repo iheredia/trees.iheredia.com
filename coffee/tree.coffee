@@ -15,8 +15,8 @@ class Tree
     }
 
     @branch_parameters = {
-      up_growing: 50
-      down_growing: 50
+      up_growing: 150
+      down_growing: 20
       depth: 7
       color: { h: 40, s: 0.9, v: 0.3 }
       hue_variance: 5
@@ -25,7 +25,7 @@ class Tree
     }
 
     @leaves_parameters = {
-      depth: 4
+      depth: 5
       squareness: 50
       color: { h: 115, s: 0.9, v: 0.3 }
       hue_variance: 10

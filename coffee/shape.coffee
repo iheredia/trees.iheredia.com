@@ -35,20 +35,20 @@ class Shape
   isGoingDown: (angle) ->
     Math.cos(angle) < 0
 
+  childSize: (side) ->
+    trig = if side == 'left' then Math.cos else Math.sin
+    { width: @size.width * trig(@addAngle), height: @childHeight() }
+
   leftShape: ->
     leftShapePosition = {
       x: @position.x + Math.cos(Math.PI/2 + @position.angle) * @size.height
       y: @position.y - Math.sin(Math.PI/2 + @position.angle) * @size.height
       angle: @position.angle + @addAngle
     }
-    leftShapeSize = {
-      width: @size.width * Math.cos(@addAngle)
-      height: @childHeight() * @heightMultiplier(leftShapePosition)
-    }
     if @depth >= @tree.branch_parameters.depth
-      new LeaveShape(@tree, leftShapePosition, leftShapeSize, @depth+1)
+      new LeaveShape(@tree, leftShapePosition, @childSize('left'), @depth+1)
     else
-      new BranchShape(@tree, leftShapePosition, leftShapeSize, @depth+1)
+      new BranchShape(@tree, leftShapePosition, @childSize('left'), @depth+1)
 
   rightShape: (leftShape)->
     rightShapePosition = {
@@ -56,14 +56,10 @@ class Shape
       y: leftShape.position.y - Math.sin(leftShape.position.angle) * leftShape.size.width
       angle: @position.angle + @addAngle - Math.PI/2
     }
-    rightShapeSize = {
-      width: @size.width * Math.sin(@addAngle)
-      height: @childHeight() * @heightMultiplier(rightShapePosition)
-    }
     if @depth >= @tree.branch_parameters.depth
-      new LeaveShape(@tree, rightShapePosition, rightShapeSize, @depth+1)
+      new LeaveShape(@tree, rightShapePosition, @childSize('right'), @depth+1)
     else
-      new BranchShape(@tree, rightShapePosition, rightShapeSize, @depth+1)
+      new BranchShape(@tree, rightShapePosition, @childSize('right'), @depth+1)
 
   setColors: (shape_type) ->
     @hue = jStat.normal.sample(@tree[shape_type].color.h, @tree[shape_type].hue_variance)
@@ -79,8 +75,12 @@ class Shape
 class BranchShape extends Shape
 
   beta: 25
-  heightMultiplier: (position) ->
-    if @isGoingDown(position.angle)
+  constructor: (@tree, @position, @size, @depth=1) ->
+    super(@tree, @position, @size, @depth)
+    @size.height *= @heightMultiplier() unless @depth == 0
+
+  heightMultiplier: ->
+    if @isGoingDown(@position.angle)
       jStat.beta.sample(@tree.branch_parameters.down_growing, @beta)
     else
       jStat.beta.sample(@tree.branch_parameters.up_growing, @beta)
@@ -96,7 +96,11 @@ class BranchShape extends Shape
 
 class LeaveShape extends Shape
 
-  heightMultiplier: (position) ->
+  constructor: (@tree, @position, @size, @depth=1) ->
+    super(@tree, @position, @size, @depth)
+    @size.height *= @heightMultiplier()
+
+  heightMultiplier: ->
     1 + 2*jStat.beta.sample(100.1 - @tree.leaves_parameters.squareness, 100)
 
   childHeight: ->
