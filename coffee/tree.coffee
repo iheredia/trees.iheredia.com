@@ -13,7 +13,7 @@ class Tree
     min = Math.min(@canvas.el.height, @canvas.el.width)
     @trunk_parameters = {
       width: min * 0.08
-      height: min * 0.08 * 16 / 9
+      height: min * 0.08 * 1.3
     }
 
     @branch_parameters = {
@@ -50,7 +50,7 @@ class Tree
 
     shapePosition = {
       x: @canvas.el.width/2 - size.width/2
-      y: @canvas.el.height*0.9
+      y: @canvas.el.height*0.7
       angle: 0
     }
 
