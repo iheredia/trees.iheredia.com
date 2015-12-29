@@ -420,7 +420,7 @@
       };
       shapePosition = {
         x: this.canvas.el.width / 2 - size.width / 2,
-        y: this.canvas.el.height * 0.7,
+        y: this.canvas.el.height * 0.9,
         angle: 0
       };
       this.baseShape = new BranchShape(this, shapePosition, size);

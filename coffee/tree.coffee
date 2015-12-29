@@ -49,7 +49,7 @@ class Tree
 
     shapePosition = {
       x: @canvas.el.width/2 - size.width/2
-      y: @canvas.el.height*0.7
+      y: @canvas.el.height*0.9
       angle: 0
     }
 
