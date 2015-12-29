@@ -58,6 +58,8 @@
     general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width * 4);
     gui.add(tree.general_parameters, 'growing_time', 0, 1000);
     gui.addColor(tree.general_parameters, 'background');
+    gui.add(tree.general_parameters, 'shape', ['rects', 'ellipsis']);
+    gui.add(tree.general_parameters, 'clean_canvas');
     return gui.add(tree, 'generate');
   });
 
@@ -70,11 +72,20 @@
       this.size = size1;
       this.depth = depth != null ? depth : 1;
       this.divide = bind(this.divide, this);
+      this.drawEllipsis = bind(this.drawEllipsis, this);
+      this.drawRects = bind(this.drawRects, this);
       this.currentTree = this.tree._currentTree;
     }
 
     Shape.prototype.draw = function(ctx) {
       this.ctx = ctx;
+      return {
+        rects: this.drawRects,
+        ellipsis: this.drawEllipsis
+      }[this.tree.general_parameters.shape]();
+    };
+
+    Shape.prototype.drawRects = function() {
       this.setColors();
       this.ctx.fillStyle = "hsl(" + this.hue + ", " + (this.saturation * 100) + "%, " + (this.value * 100) + "%)";
       this.ctx.translate(this.position.x, this.position.y);
@@ -82,6 +93,19 @@
       this.ctx.fillRect(0, 0, this.size.width, -this.size.height);
       this.ctx.rotate(this.position.angle);
       return this.ctx.translate(-this.position.x, -this.position.y);
+    };
+
+    Shape.prototype.drawEllipsis = function() {
+      this.setColors();
+      this.ctx.save();
+      this.ctx.fillStyle = "hsl(" + this.hue + ", " + (this.saturation * 100) + "%, " + (this.value * 100) + "%)";
+      this.ctx.translate(this.position.x, this.position.y);
+      this.ctx.rotate(-this.position.angle);
+      this.ctx.scale(1, this.size.height / this.size.width);
+      this.ctx.beginPath();
+      this.ctx.arc(this.size.width / 2, -this.size.width / 2, this.size.width / 2, 0, 2 * Math.PI, false);
+      this.ctx.fill();
+      return this.ctx.restore();
     };
 
     Shape.prototype.limitReached = function() {
@@ -104,14 +128,16 @@
     };
 
     Shape.prototype.childrenShapes = function() {
-      var leftShape, rightShape;
-      leftShape = this.leftShape();
-      rightShape = this.rightShape(leftShape);
+      var ShapeClass, leftShape, parameters, rightShape;
+      if (this.depth >= this.tree.branch_parameters.depth) {
+        ShapeClass = LeaveShape;
+      } else {
+        ShapeClass = BranchShape;
+      }
+      parameters = this.childParameters();
+      leftShape = new ShapeClass(this.tree, parameters.leftPosition, parameters.leftSize, this.depth + 1);
+      rightShape = new ShapeClass(this.tree, parameters.rightPosition, parameters.rightSize, this.depth + 1);
       return [leftShape, rightShape];
-    };
-
-    Shape.prototype.isGoingDown = function(angle) {
-      return Math.cos(angle) < 0;
     };
 
     Shape.prototype.childSize = function(side) {
@@ -123,32 +149,26 @@
       };
     };
 
-    Shape.prototype.leftShape = function() {
-      var leftShapePosition;
-      leftShapePosition = {
+    Shape.prototype.childParameters = function() {
+      var leftPosition, leftSize, rightPosition, rightSize;
+      leftSize = this.childSize('left');
+      rightSize = this.childSize('right');
+      leftPosition = {
         x: this.position.x + Math.cos(Math.PI / 2 + this.position.angle) * this.size.height,
         y: this.position.y - Math.sin(Math.PI / 2 + this.position.angle) * this.size.height,
         angle: this.position.angle + this.addAngle
       };
-      if (this.depth >= this.tree.branch_parameters.depth) {
-        return new LeaveShape(this.tree, leftShapePosition, this.childSize('left'), this.depth + 1);
-      } else {
-        return new BranchShape(this.tree, leftShapePosition, this.childSize('left'), this.depth + 1);
-      }
-    };
-
-    Shape.prototype.rightShape = function(leftShape) {
-      var rightShapePosition;
-      rightShapePosition = {
-        x: leftShape.position.x + Math.cos(leftShape.position.angle) * leftShape.size.width,
-        y: leftShape.position.y - Math.sin(leftShape.position.angle) * leftShape.size.width,
+      rightPosition = {
+        x: leftPosition.x + Math.cos(leftPosition.angle) * leftSize.width,
+        y: leftPosition.y - Math.sin(leftPosition.angle) * leftSize.width,
         angle: this.position.angle + this.addAngle - Math.PI / 2
       };
-      if (this.depth >= this.tree.branch_parameters.depth) {
-        return new LeaveShape(this.tree, rightShapePosition, this.childSize('right'), this.depth + 1);
-      } else {
-        return new BranchShape(this.tree, rightShapePosition, this.childSize('right'), this.depth + 1);
-      }
+      return {
+        leftPosition: leftPosition,
+        rightPosition: rightPosition,
+        leftSize: leftSize,
+        rightSize: rightSize
+      };
     };
 
     Shape.prototype.setColors = function(shape_type) {
@@ -160,6 +180,10 @@
       value_beta_parameter = (1 - this.tree[shape_type].color.v) / this.tree[shape_type].color.v;
       value_inverse_variance = 51 - this.tree[shape_type].value_variance;
       return this.value = jStat.beta.sample(value_inverse_variance, value_inverse_variance * value_beta_parameter);
+    };
+
+    Shape.prototype.isGoingDown = function(angle) {
+      return Math.cos(angle) < 0;
     };
 
     return Shape;
@@ -241,7 +265,9 @@
       this.canvas = new DrawingCanvas($('canvas'));
       this.general_parameters = {
         growing_time: 200,
-        background: "#ffffff"
+        background: "#ffffff",
+        clean_canvas: true,
+        shape: 'rects'
       };
       min = Math.min(this.canvas.el.height, this.canvas.el.width);
       this.trunk_parameters = {
@@ -278,7 +304,9 @@
     Tree.prototype.generate = function() {
       var shapePosition, size;
       this._currentTree = Math.random();
-      this.canvas.clear(this.general_parameters.background);
+      if (this.general_parameters.clean_canvas) {
+        this.canvas.clear(this.general_parameters.background);
+      }
       size = {
         width: this.trunk_parameters.width,
         height: this.trunk_parameters.height

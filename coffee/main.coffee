@@ -27,4 +27,6 @@ $ ->
 
   gui.add(tree.general_parameters, 'growing_time', 0, 1000)
   gui.addColor(tree.general_parameters, 'background')
+  gui.add(tree.general_parameters, 'shape', ['rects', 'ellipsis'])
+  gui.add(tree.general_parameters, 'clean_canvas')
   gui.add(tree, 'generate')
