@@ -35,6 +35,11 @@ class Tree
       value_variance: 10
     }
 
+    @growth_parameters = {
+      split_direction: 90
+      split_variance: 0.5
+    }
+
   generate: =>
     @_currentTree = Math.random()
     @canvas.clear(@general_parameters.background) if @general_parameters.clean_canvas

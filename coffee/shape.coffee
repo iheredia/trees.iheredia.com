@@ -1,7 +1,5 @@
 class Shape
 
-  addAngle: Math.PI / 4
-
   constructor: (@tree, @position, @size, @depth = 1) ->
     @currentTree = @tree._currentTree
 
@@ -64,6 +62,10 @@ class Shape
     {width: @size.width * trig(@addAngle), height: @childHeight()}
 
   childParameters: ->
+    angle_mean = @tree.growth_parameters.split_direction
+    angle_variance = @tree.growth_parameters.split_variance
+    @addAngle = beta_sample_for(angle_mean / 180, angle_variance / 10 * 0.25) * Math.PI/2
+
     leftSize = @childSize('left')
     rightSize = @childSize('right')
     leftPosition = {
