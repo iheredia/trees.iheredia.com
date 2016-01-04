@@ -39,6 +39,8 @@ $ ->
   general = gui.addFolder('trunk')
   general.add(tree.trunk_parameters, 'width', 0, tree.trunk_parameters.width * 4)
   general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width * 4)
+  general.add(tree.trunk_parameters, 'position_x', 0, 100)
+  general.add(tree.trunk_parameters, 'position_y', 0, 100)
 
   growth = gui.addFolder('growth')
   growth.add(tree.growth_parameters, 'split_direction', 1, 180)

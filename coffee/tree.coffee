@@ -13,6 +13,8 @@ class Tree
     @trunk_parameters = {
       width: 60
       height: 110
+      position_x: 50
+      position_y: 80
     }
 
     @branch_parameters = {
@@ -48,8 +50,8 @@ class Tree
     }
 
     shapePosition = {
-      x: @canvas.el.width/2 - size.width/2
-      y: @canvas.el.height*0.9
+      x: @canvas.el.width * @trunk_parameters.position_x / 100 - size.width/2
+      y: @canvas.el.height * @trunk_parameters.position_y / 100 + size.height/2
       angle: 0
     }
 

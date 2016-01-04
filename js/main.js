@@ -157,6 +157,8 @@
     general = gui.addFolder('trunk');
     general.add(tree.trunk_parameters, 'width', 0, tree.trunk_parameters.width * 4);
     general.add(tree.trunk_parameters, 'height', 0, tree.trunk_parameters.width * 4);
+    general.add(tree.trunk_parameters, 'position_x', 0, 100);
+    general.add(tree.trunk_parameters, 'position_y', 0, 100);
     growth = gui.addFolder('growth');
     growth.add(tree.growth_parameters, 'split_direction', 1, 180);
     growth.add(tree.growth_parameters, 'split_variance', 0.01, 1);
@@ -375,7 +377,9 @@
       };
       this.trunk_parameters = {
         width: 60,
-        height: 110
+        height: 110,
+        position_x: 50,
+        position_y: 80
       };
       this.branch_parameters = {
         up_growing: 150,
@@ -419,8 +423,8 @@
         height: this.trunk_parameters.height
       };
       shapePosition = {
-        x: this.canvas.el.width / 2 - size.width / 2,
-        y: this.canvas.el.height * 0.9,
+        x: this.canvas.el.width * this.trunk_parameters.position_x / 100 - size.width / 2,
+        y: this.canvas.el.height * this.trunk_parameters.position_y / 100 + size.height / 2,
         angle: 0
       };
       this.baseShape = new BranchShape(this, shapePosition, size);
